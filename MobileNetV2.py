@@ -103,6 +103,8 @@ if initial_epoch < 10:
     with open(history_file, "wb") as f:
         pickle.dump(past_history, f)
 
+    initial_epoch = len(past_history['accuracy'])  # ✅ update for Stage 2
+
 # === Stage 2: Fine-tuning deeper layers ===
 print("🔓 Fine-tuning deeper layers...")
 model = load_model(checkpoint_path)  # Load best from Stage 1
@@ -118,7 +120,8 @@ model.compile(optimizer=Adam(learning_rate=1e-5), loss='binary_crossentropy', me
 history_ft = model.fit(
     train_data,
     validation_data=val_data,
-    epochs=20,
+    epochs=initial_epoch + 20,   # ✅ train for 20 more epochs after Stage 1
+    initial_epoch=initial_epoch, # ✅ continue from Stage 1's last epoch
     callbacks=[early_stopping, checkpoint]
 )
 
@@ -129,6 +132,7 @@ for key in past_history.keys():
 
 with open(history_file, "wb") as f:
     pickle.dump(past_history, f)
+
 
 # === Plot Curves ===
 plt.figure()
